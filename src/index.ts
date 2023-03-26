@@ -2,8 +2,8 @@ import "dotenv/config";
 import express from "express";
 import fetch from "node-fetch";
 import { InteractionType, InteractionResponseType } from "discord-interactions";
-import { VerifyDiscordRequest } from "./utils";
-import { getChatGPTResponse } from "./chatgpt";
+import { VerifyDiscordRequest } from "./utils.js";
+import { getChatGPTResponse } from "./chatgpt.js";
 
 // Create an express app
 const app = express();

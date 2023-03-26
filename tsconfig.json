@@ -24,6 +24,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "src/utils.js"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
