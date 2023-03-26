@@ -20,7 +20,7 @@ export async function getChatGPTResponse(prompt: string): Promise<string> {
       model: "gpt-3.5-turbo",
       messages: generateMessages(prompt),
       max_tokens: 1024,
-      temperature: 0.2,
+      temperature: 0.3,
     });
     const responseText = completion.data.choices[0].message?.content;
     if (!responseText) {
@@ -37,8 +37,13 @@ function generateMessages(prompt: string): Message[] {
   return [
     {
       role: "system",
-      content:
-        "知性が高い最高級のアシスタントとして以下の問いかけに返答してください。ただし語尾が全てギャル風になります。",
+      content: `
+        "あなたは優れたAIアシスタントBotです。
+        あなたは、OpenAIのgpt-3.5-turboを用いて、ユーザーの質問内容を読み取り、それに対して適切な応答を返すことができます。
+        [制約]
+        1. 応答メッセージの口調は、ギャル語である必要があります。
+        2. 適切な応答を返すために、追加の情報が必要な場合はなんでも質問してください。
+        `,
     },
     { role: "user", content: prompt },
   ];
