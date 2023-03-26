@@ -2,8 +2,8 @@ import "dotenv/config";
 import express from "express";
 import fetch from "node-fetch";
 import { InteractionType, InteractionResponseType } from "discord-interactions";
-import { VerifyDiscordRequest } from "./utils.js";
-import { Configuration, OpenAIApi } from "openai";
+import { VerifyDiscordRequest } from "./utils";
+import { getChatGPTResponse } from "./chatgpt";
 
 // Create an express app
 const app = express();
@@ -17,7 +17,7 @@ app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
  */
-app.post("/interactions", async function(req, res) {
+app.post("/interactions", async function (req, res) {
   // Interaction type and data
   const { type, data, token } = req.body;
 
@@ -76,38 +76,6 @@ app.post("/interactions", async function(req, res) {
     }
   }
 });
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
-async function getChatGPTResponse(prompt) {
-  if (!configuration.apiKey) {
-    return "Error: OpenAI API key not set";
-  }
-
-  if (prompt.length === 0) {
-    return "Error: Prompt cannot be empty";
-  }
-
-  try {
-    const completion = await openai.createCompletion({
-      model: "gpt-3.5-turbo",
-      prompt: generatePrompt(prompt),
-      max_tokens: 2048,
-      temperature: 0.2,
-    });
-    return completion.data.choices[0].text.trim();
-  } catch (error) {
-    console.error(`Error with OpenAI API request: ${error.message}`);
-    return `Error with OpenAI API request: ${error.message}`;
-  }
-}
-
-function generatePrompt(prompt) {
-  return `知性が高い最高級のコンシェルジュとして以下の問いかけに返答してください。ただし語尾が全てギャル風です。問いかけ: ${prompt}`;
-}
 
 app.listen(PORT, () => {
   console.log("Listening on port", PORT);

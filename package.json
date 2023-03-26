@@ -1,13 +1,14 @@
 {
-  "name": "getting-started",
+  "name": "discord-chat-ai",
   "version": "1.0.0",
   "description": "Discord example app",
-  "main": "app.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "node app.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "register": "node commands.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon"
   },
   "author": "Hirokuni Honda",
   "license": "MIT",
@@ -19,6 +20,9 @@
     "openai": "^3.2.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.15.10",
+    "nodemon": "^2.0.15",
+    "typescript": "^5.0.2"
   }
 }
