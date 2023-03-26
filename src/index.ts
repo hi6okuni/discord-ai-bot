@@ -45,6 +45,7 @@ app.post("/interactions", async function (req, res) {
 
       try {
         const response = await getChatGPTResponse(prompt);
+        const responseText = `Q: ${prompt}\n ${response}`;
         // Use the webhook URL to edit the original deferred response
         const webhookURL = `https://discord.com/api/v8/webhooks/${process.env.APP_ID}/${token}/messages/@original`;
 
@@ -54,7 +55,7 @@ app.post("/interactions", async function (req, res) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ content: response }),
+          body: JSON.stringify({ content: responseText }),
         });
       } catch (error) {
         console.error(error);
