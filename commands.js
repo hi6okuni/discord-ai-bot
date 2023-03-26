@@ -1,45 +1,20 @@
-import 'dotenv/config';
-import { getRPSChoices } from './game.js';
-import { capitalize, InstallGlobalCommands } from './utils.js';
+import "dotenv/config";
+import { InstallGlobalCommands } from "./utils.js";
 
-// Get the game choices from game.js
-function createCommandChoices() {
-  const choices = getRPSChoices();
-  const commandChoices = [];
-
-  for (let choice of choices) {
-    commandChoices.push({
-      name: capitalize(choice),
-      value: choice.toLowerCase(),
-    });
-  }
-
-  return commandChoices;
-}
-
-// Simple test command
-const TEST_COMMAND = {
-  name: 'test',
-  description: 'Basic command',
-  type: 1,
-};
-
-// Command containing options
-const CHALLENGE_COMMAND = {
-  name: 'challenge',
-  description: 'Challenge to a match of rock paper scissors',
+const AI_COMMAND = {
+  name: "ai",
+  description: "Interact with ChatGPT AI",
   options: [
     {
       type: 3,
-      name: 'object',
-      description: 'Pick your object',
+      name: "prompt",
+      description: "The prompt you want to send to ChatGPT",
       required: true,
-      choices: createCommandChoices(),
     },
   ],
   type: 1,
 };
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND];
+const ALL_COMMANDS = [AI_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

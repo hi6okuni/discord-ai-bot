@@ -1,14 +1,9 @@
-import 'dotenv/config';
-import express from 'express';
-import {
-  InteractionType,
-  InteractionResponseType,
-  InteractionResponseFlags,
-  MessageComponentTypes,
-  ButtonStyleTypes,
-} from 'discord-interactions';
-import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest } from './utils.js';
-import { getShuffledOptions, getResult } from './game.js';
+import "dotenv/config";
+import express from "express";
+import fetch from "node-fetch";
+import { InteractionType, InteractionResponseType } from "discord-interactions";
+import { VerifyDiscordRequest } from "./utils.js";
+import { Configuration, OpenAIApi } from "openai";
 
 // Create an express app
 const app = express();
@@ -18,14 +13,13 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
 // Store for in-progress games. In production, you'd want to use a DB
-const activeGames = {};
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
  */
-app.post('/interactions', async function (req, res) {
+app.post("/interactions", async function (req, res) {
   // Interaction type and data
-  const { type, id, data } = req.body;
+  const { type, data, token } = req.body;
 
   /**
    * Handle verification requests
@@ -40,21 +34,81 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name } = data;
+    // "ai" command
+    if (name === "ai") {
+      const prompt = data.options[0].value;
 
-    // "test" command
-    if (name === 'test') {
-      // Send a message into the channel where command was triggered from
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          // Fetches a random emoji to send from a helper function
-          content: 'hello world ' + getRandomEmoji(),
-        },
+      // Defer the response to avoid timeout
+      res.send({
+        type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
       });
+
+      try {
+        const response = await getChatGPTResponse(prompt);
+        // Use the webhook URL to edit the original deferred response
+        const webhookURL = `https://discord.com/api/v8/webhooks/${process.env.APP_ID}/${token}/messages/@original`;
+
+        // Edit the original deferred response with the result from ChatGPT
+        await fetch(webhookURL, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ content: response }),
+        });
+      } catch (error) {
+        console.error(error);
+
+        // Use the webhook URL to edit the original deferred response
+        const webhookURL = `https://discord.com/api/v8/webhooks/${process.env.APP_ID}/${token}/messages/@original`;
+
+        // Edit the original deferred response with the error message
+        await fetch(webhookURL, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: "Error: Unable to get response from ChatGPT",
+          }),
+        });
+      }
     }
   }
 });
 
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+async function getChatGPTResponse(prompt) {
+  if (!configuration.apiKey) {
+    return "Error: OpenAI API key not set";
+  }
+
+  if (prompt.length === 0) {
+    return "Error: Prompt cannot be empty";
+  }
+
+  try {
+    const completion = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt: generatePrompt(prompt),
+      max_tokens: 1024,
+      temperature: 0.2,
+    });
+    return completion.data.choices[0].text.trim();
+  } catch (error) {
+    console.error(`Error with OpenAI API request: ${error.message}`);
+    return `Error with OpenAI API request: ${error.message}`;
+  }
+}
+
+function generatePrompt(prompt) {
+  return `あなたは日本のギャルです。問いかけには、普段のギャル口調で回答してください。頭に「回答」などは不要です。問いかけは以下です: ${prompt}`;
+}
+
 app.listen(PORT, () => {
-  console.log('Listening on port', PORT);
+  console.log("Listening on port", PORT);
 });
