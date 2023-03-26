@@ -17,7 +17,7 @@ app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
  */
-app.post("/interactions", async function (req, res) {
+app.post("/interactions", async function(req, res) {
   // Interaction type and data
   const { type, data, token } = req.body;
 
@@ -93,9 +93,9 @@ async function getChatGPTResponse(prompt) {
 
   try {
     const completion = await openai.createCompletion({
-      model: "text-davinci-003",
+      model: "gpt-3.5-turbo",
       prompt: generatePrompt(prompt),
-      max_tokens: 1024,
+      max_tokens: 2048,
       temperature: 0.2,
     });
     return completion.data.choices[0].text.trim();
@@ -106,7 +106,7 @@ async function getChatGPTResponse(prompt) {
 }
 
 function generatePrompt(prompt) {
-  return `あなたは日本のギャルです。問いかけには、普段のギャル口調で回答してください。頭に「回答」などは不要です。問いかけは以下です: ${prompt}`;
+  return `知性が高い最高級のコンシェルジュとして以下の問いかけに返答してください。ただし語尾が全てギャル風です。問いかけ: ${prompt}`;
 }
 
 app.listen(PORT, () => {
